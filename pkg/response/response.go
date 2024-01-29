@@ -29,18 +29,18 @@ func init() {
 // 40000:请求参数错误
 // 50001:用户注册系统内部错误
 
-func Success(d any) map[string]any {
+func Success(data ...any) map[string]any {
 	m := map[string]any{}
 	m["code"] = 0
 	m["msg"] = message[SuccessCode]
-	m["data"] = d
+	m["data"] = data
 	return m
 }
 
-func Fail(code Code) map[string]any {
+func Fail(code Code, errMessage string) map[string]any {
 	m := map[string]any{}
 	m["code"] = code
-	m["msg"] = message[code]
+	m["msg"] = message[code] + errMessage
 	m["data"] = ""
 	return m
 }

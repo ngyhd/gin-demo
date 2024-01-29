@@ -33,7 +33,6 @@ func main() {
 	if err := v.Unmarshal(&ServerConfig); err != nil {
 		zap.S().Panicf("解析配置文件失败 %v", err)
 	}
-	fmt.Println(ServerConfig)
 	router := internal.Exec()
 	s := &http.Server{
 		Addr:           "0.0.0.0:" + strconv.Itoa(ServerConfig.Port),
