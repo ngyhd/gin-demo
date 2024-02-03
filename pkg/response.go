@@ -1,4 +1,4 @@
-package response
+package pkg
 
 var message map[Code]string
 

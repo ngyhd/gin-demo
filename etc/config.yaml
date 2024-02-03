@@ -3,22 +3,17 @@ Port: 9091
 Mysql:
   Host: 127.0.0.1
   Port: 3306
-  Db: test
+  Db: gin-demo
   User: root
-  Password: root
+  Password: 123456
 Redis:
   Host: 127.0.0.1
   Port: 6379
 logs:
   path: './logs'
-  # -1 dubug 0 info 1 warn 2 error,级别越高记录的日志越少
-  level: 0
-  # MB
-  max_size: 18000
-  # 保留天数
-  max_age: 7
-  # 最大备份数
-  max_backups: 7
-  # 是否压缩
-  compress: true
+  level: debug   # debug、info、warn、error,级别越高记录的日志越少
+  max_size: 18000   # MB
+  max_age: 7   # 保留天数
+  max_backups: 7   # 最大备份数
+  compress: true   # 是否压缩,减少磁盘空间
 
