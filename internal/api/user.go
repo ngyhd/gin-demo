@@ -1,5 +1,9 @@
 package api
 
+// tag binding
+// binding 参考1：https://juejin.cn/post/6863765115456454664#heading-5
+// binding 参考2：https://github.com/go-playground/validator
+
 type RegisterRequest struct {
 	UserName string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`

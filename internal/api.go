@@ -11,9 +11,13 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
+	"io"
+	"os"
 	"time"
 
 	"strings"
@@ -21,6 +25,7 @@ import (
 
 func Exec() *gin.Engine {
 	InitConfig()     // 初始化配置
+	InitLogger()     // 初始化日志
 	InitMysql()      // 初始化Mysql
 	InitRedis()      // 初始化Redis
 	InitLocalCache() // 初始化本地缓存
@@ -36,7 +41,7 @@ func InitConfig() {
 	} else {
 		configFileName = *configPathName
 	}
-	fmt.Println("配置文件路径:" + configFileName)
+	//fmt.Println("配置文件路径:" + configFileName)
 
 	v := viper.New()
 	v.SetConfigFile(configFileName)
@@ -55,6 +60,7 @@ func InitMysql() {
 	c := config.GetServerConfig().MysqlConf
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		c.User, c.Password, c.Host, c.Port, c.DB)
+	//Gorm 有一个 默认 logger 实现，默认情况下，它会打印慢 SQL 和错误
 	//newLogger := logger.New(
 	//	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 	//	logger.serverConfig{
@@ -108,50 +114,50 @@ func InitLocalCache() {
 	config.SetLocalCache(localCache)
 }
 
-//func InitLogger() {
-//	encoder := getEncoder()
-//	loggerInfo := getLogWriterInfo()
-//	logLevel := zapcore.InfoLevel
-//	switch serverConfig.LogConf.Level {
-//	case -1:
-//		logLevel = zapcore.DebugLevel
-//	case 0:
-//		logLevel = zapcore.InfoLevel
-//	case 1:
-//		logLevel = zapcore.WarnLevel
-//	case 2:
-//		logLevel = zapcore.ErrorLevel
-//	}
-//
-//	coreInfo := zapcore.NewCore(encoder, loggerInfo, logLevel)
-//	logger := zap.New(coreInfo)
-//	zap.ReplaceGlobals(logger)
-//}
-//
-//func getEncoder() zapcore.Encoder {
-//	productionEncoderConfig := zap.NewProductionEncoderConfig()
-//	productionEncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-//	productionEncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-//	return zapcore.NewJSONEncoder(productionEncoderConfig)
-//}
-//
-//func getLogWriterInfo() zapcore.WriteSyncer {
-//	logPath := serverConfig.LogConf.Path + "/" + serverConfig.Name + ".log"
-//	l := &lumberjack.Logger{
-//		Filename:   logPath,
-//		MaxSize:    18000, //最大MB
-//		MaxBackups: 7,     //最大备份
-//		MaxAge:     7,     //保留7天
-//		Compress:   true,
-//	}
-//	//return zapcore.AddSync(lumberJackLogger)
-//
-//	var ws io.Writer
-//	if serverConfig.Mode == "release" {
-//		ws = io.MultiWriter(l)
-//	} else {
-//		ws = io.MultiWriter(l, os.Stdout)
-//	}
-//
-//	return zapcore.AddSync(ws)
-//}
+func InitLogger() {
+	encoder := getEncoder()
+	loggerInfo := getLogWriterInfo()
+	logLevel := zapcore.InfoLevel
+	switch config.GetServerConfig().LogConf.Level {
+	case "debug":
+		logLevel = zapcore.DebugLevel
+	case "info":
+		logLevel = zapcore.InfoLevel
+	case "warn":
+		logLevel = zapcore.WarnLevel
+	case "error":
+		logLevel = zapcore.ErrorLevel
+	}
+
+	coreInfo := zapcore.NewCore(encoder, loggerInfo, logLevel)
+	logger := zap.New(coreInfo)
+	zap.ReplaceGlobals(logger)
+}
+
+func getEncoder() zapcore.Encoder {
+	productionEncoderConfig := zap.NewProductionEncoderConfig()
+	productionEncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	productionEncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+	return zapcore.NewJSONEncoder(productionEncoderConfig)
+}
+
+func getLogWriterInfo() zapcore.WriteSyncer {
+	logPath := config.GetServerConfig().LogConf.Path + "/" + config.GetServerConfig().Name + ".log"
+	l := &lumberjack.Logger{
+		Filename:   logPath,
+		MaxSize:    18000, //最大MB
+		MaxBackups: 7,     //最大备份
+		MaxAge:     7,     //保留7天
+		Compress:   true,
+	}
+	//return zapcore.AddSync(lumberJackLogger)
+
+	var ws io.Writer
+	if config.GetServerConfig().Mode == "release" {
+		ws = io.MultiWriter(l)
+	} else {
+		ws = io.MultiWriter(l, os.Stdout)
+	}
+
+	return zapcore.AddSync(ws)
+}

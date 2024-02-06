@@ -1,5 +1,6 @@
 Name: gin-demo
 Port: 9091
+mode: debug
 Mysql:
   Host: 127.0.0.1
   Port: 3306
@@ -9,6 +10,8 @@ Mysql:
 Redis:
   Host: 127.0.0.1
   Port: 6379
+  DB: 0
+  Password:
 logs:
   path: './logs'
   level: debug   # debug、info、warn、error,级别越高记录的日志越少
