@@ -1,6 +1,6 @@
 # 关于 
-gin-demo基于gin使用相关的开源工具进行web项目开发。  
-本项目致力于帮助初学者掌握Go web开发!  
+gin-demo基于gin及开源项目进行简单且完善的API开发。  
+本项目致力于帮助初学者掌握Go WEB API开发!  
 本项目保持简单！  
 本项目仅供学习参考！  
 
@@ -45,5 +45,5 @@ gin-demo基于gin使用相关的开源工具进行web项目开发。
     └── response.go // 自定义公用工具
 ```
 
-# 文档
-更多资料参考：[语雀gin-demo](https://www.yuque.com/ngyhd/sdqiox/iyosrxglvvbm5b36)
+# 文档&&学习交流
+更多参考：[语雀gin-demo](https://www.yuque.com/ngyhd/sdqiox/iyosrxglvvbm5b36)
