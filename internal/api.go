@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"gin-demo/internal/config"
 	"gin-demo/internal/router"
@@ -33,16 +32,7 @@ func Exec() *gin.Engine {
 }
 
 func InitConfig() {
-	configPathName := flag.String("config", "", "配置文件路径")
-	flag.Parse()
-	var configFileName string
-	if *configPathName == "" {
-		configFileName = "./etc/config.yaml"
-	} else {
-		configFileName = *configPathName
-	}
-	//fmt.Println("配置文件路径:" + configFileName)
-
+	configFileName := "./etc/config.yaml"
 	v := viper.New()
 	v.SetConfigFile(configFileName)
 	if err := v.ReadInConfig(); err != nil {
@@ -145,17 +135,17 @@ func getLogWriterInfo() zapcore.WriteSyncer {
 	logPath := config.GetServerConfig().LogConf.Path + "/" + config.GetServerConfig().Name + ".log"
 	l := &lumberjack.Logger{
 		Filename:   logPath,
-		MaxSize:    18000, //最大MB
-		MaxBackups: 7,     //最大备份
-		MaxAge:     7,     //保留7天
+		MaxSize:    config.GetServerConfig().LogConf.MaxSize,    //最大MB
+		MaxBackups: config.GetServerConfig().LogConf.MaxBackups, //最大备份
+		MaxAge:     config.GetServerConfig().LogConf.MaxAge,     //保留7天
 		Compress:   true,
 	}
-	//return zapcore.AddSync(lumberJackLogger)
 
 	var ws io.Writer
 	if config.GetServerConfig().Mode == "release" {
 		ws = io.MultiWriter(l)
 	} else {
+		//如果不是开发环境，那么会打印日志到日志文件和标准输出，也就是控制台
 		ws = io.MultiWriter(l, os.Stdout)
 	}
 

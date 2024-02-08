@@ -4,15 +4,36 @@ var message map[Code]string
 
 type Code int64
 
+// 正常响应码
 const SuccessCode Code = 0
 
+// 接口影响正常时code为0，错误时code为5位数
+// 第1位,系统错误类型。
+//		5:系统内部错误
+//		4:业务请求错误
+// 第2~3位,错误模块。
+//		比如,00公共 01 用户
+// 第4~5位,具体错误。
+// 例子:
+// 40000:请求参数错误
+// 40100:用户已存在
+// 50000:系统内部错误
+// 50100:用户注册错误
+
+// 业务错误 4xxxx
 const (
-	ParamsErrCode       Code = 40000
-	UserNotFoundErrCode Code = 40001
-	UserExistsErrCode   Code = 40002
-	TokenErrCode        Code = 40003
+	// 公共错误码 00
+
+	ParamsErrCode         Code = 40000
+	RecordNotFoundErrCode Code = 40001
+
+	//用户业务错误码 01
+
+	UserExistsErrCode Code = 40100
+	UserTokenErrCode  Code = 40101
 )
 
+// 系统错误 5xxxx
 const (
 	InternalErrCode Code = 50000
 )
@@ -20,23 +41,18 @@ const (
 func init() {
 	message = map[Code]string{}
 	message[SuccessCode] = "Success"
+	// 400xx错误message
 	message[ParamsErrCode] = "参数错误"
-	message[InternalErrCode] = "系统内部发生错误"
-	message[UserNotFoundErrCode] = "用户不存在"
-	message[UserExistsErrCode] = "用户已经存在"
-}
+	message[RecordNotFoundErrCode] = "记录不存在"
 
-// 接口影响正常时code为0，错误时code为5位数
-// 第1位,系统错误类型。
-//		5:系统内部错误
-//		4:业务请求错误
-// 第2~3位,错误模块。
-//		比如,00用户模块
-// 第4~5位,具体错误。
-//		比如,00参数错误 01注册系统内部错误
-// 例子:
-// 40000:请求参数错误
-// 50001:用户注册系统内部错误
+	// 401xx错误message
+	message[UserExistsErrCode] = "用户已经存在"
+	message[UserTokenErrCode] = "用户已经存在"
+
+	// 5xxxx错误message
+	message[InternalErrCode] = "系统内部发生错误"
+
+}
 
 func SuccessWithData(data any) map[string]any {
 	m := map[string]any{}

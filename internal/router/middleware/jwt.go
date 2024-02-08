@@ -18,24 +18,16 @@ func Jwt() gin.HandlerFunc {
 		})
 		if err != nil {
 			zap.S().Errorf("jwt Parse err:%v", err)
-			c.JSON(http.StatusOK, pkg.Fail(pkg.TokenErrCode))
+			c.JSON(http.StatusOK, pkg.Fail(pkg.UserTokenErrCode))
 			c.Abort()
 			return
 		}
 		switch {
 		case token.Valid:
 			c.Next()
-		//case errors.Is(err, jwt.ErrTokenMalformed):
-		//	fmt.Println("That's not even a token")
-		//case errors.Is(err, jwt.ErrTokenSignatureInvalid):
-		//	Invalid signature
-		//fmt.Println("Invalid signature")
-		//case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet):
-		//	Token is either expired or not active yet
-		//fmt.Println("Timing is everything")
 		default:
 			zap.S().Errorf("jwt Parse err:%+v", err)
-			c.JSON(http.StatusOK, pkg.Fail(pkg.TokenErrCode))
+			c.JSON(http.StatusOK, pkg.Fail(pkg.UserTokenErrCode))
 			c.Abort()
 			return
 		}
