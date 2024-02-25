@@ -41,7 +41,7 @@ func TestApi(t *testing.T) {
 			name: "登录",
 			uri:  "/login",
 			params: map[string]any{
-				"username": "Sean2",
+				"username": "Sean3",
 				"password": "123456",
 			},
 		},

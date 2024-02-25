@@ -6,6 +6,7 @@ import (
 	"gin-demo/internal/cache"
 	"gin-demo/internal/config"
 	"gin-demo/internal/model"
+	"gin-demo/internal/router/middleware"
 	"gin-demo/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -14,7 +15,6 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 func Register(c *gin.Context) {
@@ -28,7 +28,7 @@ func Register(c *gin.Context) {
 	// 逻辑处理
 	u := model.User{
 		Username: r.UserName,
-		Password: r.Password,
+		Password: pkg.EncryptPassword(r.Password),
 		Email:    r.Email,
 	}
 
@@ -78,7 +78,7 @@ func Login(c *gin.Context) {
 		Username: r.UserName,
 		Password: r.Password,
 	}
-	tx := config.GetDB().Where("username = ?", u.Username).First(&u)
+	tx := config.GetDB().Where("username = ? and password = ?", u.Username, u.Password).First(&u)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		zap.S().Errorf("Login query user:%+v err:%v", u, tx.Error)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
@@ -86,10 +86,11 @@ func Login(c *gin.Context) {
 	}
 	if u.Id != 0 {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"foo": "bar",
-			"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+			// 附加信息
+			//"foo": "bar",
+			//"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
 		})
-		mySigningKey := []byte("AllYourBase")
+		mySigningKey := []byte(middleware.Secret)
 
 		// Sign and get the complete encoded token as a string using the secret
 		tokenString, err2 := token.SignedString(mySigningKey)
@@ -100,7 +101,7 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusOK, pkg.SuccessWithData(tokenString))
 		return
 	} else {
-		c.JSON(http.StatusOK, pkg.Fail(pkg.UserNotFoundErrCode))
+		c.JSON(http.StatusOK, pkg.Fail(pkg.RecordNotFoundErrCode))
 		return
 	}
 }

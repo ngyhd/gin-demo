@@ -8,13 +8,15 @@ import (
 	"net/http"
 )
 
+const Secret = "AllYourBase"
+
 func Jwt() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("token")
-		//var tokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJleHAiOjE1MDAwLCJpc3MiOiJ0ZXN0In0.HE7fK0xOQwFEr4WDgRWj4teRPZ6i3GLwD5YCm6Pwu_c"
+		tokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJuYmYiOjE0NDQ0Nzg0MDB9.nKqRzljFfJKlotnxH8auq7ui3jlIZVxI16VZQ0G0yVY"
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return []byte("AllYourBase"), nil
+			return []byte(Secret), nil
 		})
 		if err != nil {
 			zap.S().Errorf("jwt Parse err:%v", err)

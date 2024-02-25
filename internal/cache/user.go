@@ -22,10 +22,8 @@ import (
 // hy代表hyperloglog
 // b代表bitmap
 
-const serviceName = "gin-demo"
-
 func userInfoKey(userId string) string {
-	return fmt.Sprintf("s:%v:userinfo:%v", serviceName, userId)
+	return fmt.Sprintf("s:userinfo:%v", userId)
 }
 
 func GetUserInfo(ctx context.Context, userId string) (*model.User, error) {
