@@ -76,7 +76,7 @@ func Login(c *gin.Context) {
 	// 1.查询用户是否在数据库 是则登录成功，否则返回失败
 	u := model.User{
 		Username: r.UserName,
-		Password: r.Password,
+		Password: pkg.EncryptPassword(r.Password),
 	}
 	tx := config.GetDB().Where("username = ? and password = ?", u.Username, u.Password).First(&u)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
