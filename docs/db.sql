@@ -1,4 +1,4 @@
-create table `gin-demo`.user
+create table `gin_demo`.user
 (
     id         int auto_increment
         primary key,

@@ -4,12 +4,11 @@ mode: debug
 mysql:
   host: 127.0.0.1
   port: 3306
-  db: gin-demo
+  db: gin_demo
   user: root
   password: 123456
 redis:
-  host: 127.0.0.1
-  port: 6379
+  host: 127.0.0.1:6379
   dB: 0
   password:
 logs:

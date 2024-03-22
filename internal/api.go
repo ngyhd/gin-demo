@@ -44,6 +44,7 @@ func InitConfig() {
 	}
 
 	config.SetServerConfig(c)
+	fmt.Printf("配置文件：%+v", c)
 }
 
 func InitMysql() {
@@ -78,7 +79,7 @@ func InitRedis() {
 	ctx := context.Background()
 	c := config.GetServerConfig()
 	redisClient := redis.NewUniversalClient(&redis.UniversalOptions{
-		Addrs:    strings.Split(c.Host, ","),
+		Addrs:    strings.Split(c.RedisConf.Host, ","),
 		Password: c.RedisConf.Password,
 		// To route commands by latency or randomly, enable one of the following.
 		//RouteByLatency: true,
