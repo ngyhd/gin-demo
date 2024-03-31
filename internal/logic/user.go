@@ -85,6 +85,7 @@ func Login(c *gin.Context) {
 		return
 	}
 	if u.Id != 0 {
+		// HMAC对消息进行计算MAC值
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 			// 附加信息
 			//"foo": "bar",
