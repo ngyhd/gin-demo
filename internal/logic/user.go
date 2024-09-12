@@ -8,13 +8,14 @@ import (
 	"gin-demo/internal/model"
 	"gin-demo/internal/router/middleware"
 	"gin-demo/pkg"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"net/http"
-	"strconv"
 )
 
 func Register(c *gin.Context) {
@@ -28,9 +29,12 @@ func Register(c *gin.Context) {
 	// 逻辑处理
 	u := model.User{
 		Username: r.UserName,
-		Password: pkg.EncryptPassword(r.Password),
+		Password: pkg.HashPassword(r.Password),
 		Email:    r.Email,
 	}
+
+	// 创建表
+	config.GetDB().AutoMigrate(&model.User{})
 
 	user := model.User{}
 	//1.如果存在相同用户名则返回失败
@@ -42,6 +46,7 @@ func Register(c *gin.Context) {
 	}
 	if user.Id != 0 {
 		c.JSON(http.StatusOK, pkg.Fail(pkg.UserExistsErrCode))
+		return
 	}
 
 	//2.如果存在相同的电子邮箱则返回失败
@@ -53,6 +58,7 @@ func Register(c *gin.Context) {
 	}
 	if user.Id != 0 {
 		c.JSON(http.StatusOK, pkg.Fail(pkg.UserExistsErrCode))
+		return
 	}
 
 	tx = config.GetDB().Create(&u)
@@ -76,35 +82,41 @@ func Login(c *gin.Context) {
 	// 1.查询用户是否在数据库 是则登录成功，否则返回失败
 	u := model.User{
 		Username: r.UserName,
-		Password: pkg.EncryptPassword(r.Password),
 	}
-	tx := config.GetDB().Where("username = ? and password = ?", u.Username, u.Password).First(&u)
+	tx := config.GetDB().Where("username = ?", u.Username).First(&u)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		zap.S().Errorf("Login query user:%+v err:%v", u, tx.Error)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
 		return
 	}
-	if u.Id != 0 {
-		// HMAC对消息进行计算MAC值
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			// 附加信息
-			//"foo": "bar",
-			//"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
-		})
-		mySigningKey := []byte(middleware.Secret)
 
-		// Sign and get the complete encoded token as a string using the secret
-		tokenString, err2 := token.SignedString(mySigningKey)
-		if err2 != nil {
-			zap.S().Errorf("Login SignedString  err:%v", err2)
-			c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
-		}
-		c.JSON(http.StatusOK, pkg.SuccessWithData(tokenString))
-		return
-	} else {
+	// 用户是否存在
+	if u.Id == 0 {
 		c.JSON(http.StatusOK, pkg.Fail(pkg.RecordNotFoundErrCode))
 		return
 	}
+
+	// 密码校验
+	if pkg.CheckPassword(u.Password, r.Password) != nil {
+		c.JSON(http.StatusOK, pkg.Fail(pkg.UserPasswordErrCode))
+		return
+	}
+
+	// HMAC对消息进行计算MAC值
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		// 附加信息
+		//"foo": "bar",
+		//"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+	})
+	mySigningKey := []byte(middleware.Secret)
+
+	// Sign and get the complete encoded token as a string using the secret
+	tokenString, err2 := token.SignedString(mySigningKey)
+	if err2 != nil {
+		zap.S().Errorf("Login SignedString  err:%v", err2)
+		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
+	}
+	c.JSON(http.StatusOK, pkg.SuccessWithData(tokenString))
 }
 
 func Info(c *gin.Context) {

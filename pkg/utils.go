@@ -1,13 +1,16 @@
 package pkg
 
-import "crypto/md5"
+import "golang.org/x/crypto/bcrypt"
 
 const Salt = "gin-demo"
 
-func EncryptPassword(pwd string) string {
-	hash := md5.New()
-	d := pwd + Salt
-	hash.Write([]byte(d))
-	sum := hash.Sum(nil)
-	return string(sum)
+func HashPassword(password string) string {
+	saltedPassword := password + Salt
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(saltedPassword), bcrypt.DefaultCost)
+	return string(hashedPassword)
+}
+
+func CheckPassword(hashedPassword, password string) error {
+	saltedPassword := password + Salt
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(saltedPassword))
 }
