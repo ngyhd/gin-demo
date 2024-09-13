@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"gin-demo/internal/config"
 	"gin-demo/internal/model"
+	"strconv"
+
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
-	"strconv"
 )
 
 //Redis key 规范 s:gin-demo:xxx  s代表key的类型为string gin-demo为服务名 xxx为自定义值
@@ -34,8 +35,10 @@ func GetUserInfo(ctx context.Context, userId string) (*model.User, error) {
 	if result == "" {
 		return nil, redis.Nil
 	}
+
 	var user model.User
 	err = json.Unmarshal([]byte(result), &user)
+
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +50,7 @@ func SetUserInfo(ctx context.Context, user model.User) error {
 	if err != nil {
 		return err
 	}
-	_, err = config.GetRedis().Set(ctx, userInfoKey(strconv.Itoa(user.Id)), marshal, 0).Result()
+	_, err = config.GetRedis().Set(ctx, userInfoKey(strconv.Itoa(int(user.ID))), marshal, 0).Result()
 	if err != nil {
 		return err
 	}

@@ -10,6 +10,7 @@ import (
 	"gin-demo/pkg"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -44,7 +45,7 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
 		return
 	}
-	if user.Id != 0 {
+	if user.ID != 0 {
 		c.JSON(http.StatusOK, pkg.Fail(pkg.UserExistsErrCode))
 		return
 	}
@@ -56,7 +57,7 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
 		return
 	}
-	if user.Id != 0 {
+	if user.ID != 0 {
 		c.JSON(http.StatusOK, pkg.Fail(pkg.UserExistsErrCode))
 		return
 	}
@@ -91,7 +92,7 @@ func Login(c *gin.Context) {
 	}
 
 	// 用户是否存在
-	if u.Id == 0 {
+	if u.ID == 0 {
 		c.JSON(http.StatusOK, pkg.Fail(pkg.RecordNotFoundErrCode))
 		return
 	}
@@ -102,35 +103,37 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// HMAC对消息进行计算MAC值
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		// 附加信息
-		//"foo": "bar",
-		//"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
-	})
-	mySigningKey := []byte(middleware.Secret)
-
-	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err2 := token.SignedString(mySigningKey)
-	if err2 != nil {
-		zap.S().Errorf("Login SignedString  err:%v", err2)
-		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
+	j := middleware.NewJWT()
+	claims := jwt.MapClaims{
+		"sub":  u.ID,                                  // 用户 ID
+		"name": u.Username,                            // 用户名
+		"exp":  time.Now().Add(time.Hour * 24).Unix(), // 过期时间
 	}
-	c.JSON(http.StatusOK, pkg.SuccessWithData(tokenString))
+	token, err := j.GenerateJWT(claims)
+	if err != nil {
+		zap.S().Infof("[CreateToken] 生成token失败")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "生成token失败",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, pkg.SuccessWithData(token))
 }
 
 func Info(c *gin.Context) {
-	// 参数校验
-	var r api.InfoRequest
-	err := c.ShouldBindJSON(&r)
-	if err != nil {
+	// 根据 jwt，取出当前用户信息
+	claims, _ := c.Get("claims")
+	currentUser := claims.(jwt.MapClaims)
+	userId := currentUser["sub"].(float64)
+	if userId == 0 {
 		c.JSON(http.StatusOK, pkg.Fail(pkg.ParamsErrCode))
 		return
 	}
+
 	//查询缓存
-	u, err := cache.GetUserInfo(c.Request.Context(), strconv.Itoa(r.Id))
-	if !errors.Is(err, redis.Nil) {
-		zap.S().Errorf("Info.cache.GetUserInfo  userId:%+v err:%v", r.Id, err)
+	u, err := cache.GetUserInfo(c.Request.Context(), strconv.Itoa(int(userId)))
+	if !errors.Is(err, redis.Nil) && err != nil {
+		zap.S().Errorf("Info.cache.GetUserInfo  userId:%+v err:%v", userId, err)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
 		return
 	}
@@ -140,9 +143,9 @@ func Info(c *gin.Context) {
 	}
 
 	// 逻辑处理
-	u, err = cache.RefreshUserInfo(c.Request.Context(), strconv.Itoa(r.Id))
+	u, err = cache.RefreshUserInfo(c.Request.Context(), strconv.Itoa(int(userId)))
 	if err != nil {
-		zap.S().Errorf("Info.refreshUserInfoCache  user:%+v err:%v", r.Id, err)
+		zap.S().Errorf("Info.refreshUserInfoCache  user:%+v err:%v", userId, err)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
 	}
 
@@ -157,54 +160,60 @@ func Update(c *gin.Context) {
 		c.JSON(http.StatusOK, pkg.Fail(pkg.ParamsErrCode))
 		return
 	}
-	// 逻辑处理
-	u := model.User{
-		Id:       r.Id,
-		Username: r.UserName,
+	// 根据 jwt，取出当前用户信息
+	claims, _ := c.Get("claims")
+	currentUser := claims.(jwt.MapClaims)
+	userId := currentUser["sub"].(float64)
+	if userId == 0 {
+		c.JSON(http.StatusOK, pkg.Fail(pkg.ParamsErrCode))
+		return
 	}
 
-	tx := config.GetDB().Model(&u).Update("username", u.Username)
+	// 逻辑处理
+	u := model.User{}
+	config.GetDB().First(&u, userId)
+
+	tx := config.GetDB().Model(&u).Update("username", r.UserName)
 	if tx.Error != nil {
 		zap.S().Errorf("Update  user:%+v err:%v", u, tx.Error)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.ParamsErrCode))
 		return
 	}
 	// 刷新缓存
-	_, err = cache.RefreshUserInfo(c.Request.Context(), strconv.Itoa(u.Id))
+	_, err = cache.RefreshUserInfo(c.Request.Context(), strconv.Itoa(int(u.ID)))
 	if err != nil {
 		zap.S().Errorf("Update.refreshUserInfoCache  user:%+v err:%v", u, tx.Error)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.ParamsErrCode))
 		return
 	}
 
-	c.JSON(http.StatusOK, pkg.Success())
+	c.JSON(http.StatusOK, pkg.SuccessWithData(u))
 }
 
 func Delete(c *gin.Context) {
-	// 参数校验
-	var r api.DeleteRequest
-	err := c.ShouldBindJSON(&r)
-	if err != nil {
+	// 根据 jwt，取出当前用户信息
+	claims, _ := c.Get("claims")
+	currentUser := claims.(jwt.MapClaims)
+	userId := currentUser["sub"].(float64)
+	if userId == 0 {
 		c.JSON(http.StatusOK, pkg.Fail(pkg.ParamsErrCode))
 		return
 	}
 
 	// 逻辑处理
-	u := model.User{
-		Id: r.Id,
-	}
-	tx := config.GetDB().Where("id = ?", u.Id).Delete(&u)
+	u := model.User{}
+	config.GetDB().First(&u, userId)
+	tx := config.GetDB().Delete(&u)
 	if tx.Error != nil {
-		zap.S().Errorf("Delete  userId:%v err:%v", u.Id, tx.Error)
+		zap.S().Errorf("Delete  userId:%v err:%v", u.ID, tx.Error)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
 		return
 	}
-	err = cache.DelUserInfo(c.Request.Context(), strconv.Itoa(u.Id))
+	err := cache.DelUserInfo(c.Request.Context(), strconv.Itoa(int(u.ID)))
 	if err != nil {
-		zap.S().Errorf("Delete.DelUserInfo  userId:%v err:%v", u.Id, tx.Error)
+		zap.S().Errorf("Delete.DelUserInfo  userId:%v err:%v", u.ID, tx.Error)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
 		return
 	}
 	c.JSON(http.StatusOK, pkg.Success())
-	return
 }

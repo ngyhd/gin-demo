@@ -48,7 +48,7 @@ func init() {
 
 	// 401xx错误message
 	message[UserExistsErrCode] = "用户已经存在"
-	message[UserTokenErrCode] = "用户已经存在"
+	message[UserTokenErrCode] = "登录信息错误"
 	message[UserPasswordErrCode] = "密码错误"
 
 	// 5xxxx错误message
