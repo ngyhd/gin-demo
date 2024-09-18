@@ -1,0 +1,55 @@
+basePath: /
+definitions:
+  api.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+host: 127.0.0.1:9091
+info:
+  contact:
+    email: abc.xyz@qq.com
+    url: http://www.swagger.io/support
+  description: this is a sample server celler server
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: https://www.swagger.io/terms/
+  title: gin-demo API
+  version: "1.0"
+paths:
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register
+      parameters:
+      - description: 用户注册请求数据
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/api.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "success"}'
+          schema:
+            type: string
+        "400":
+          description: '{"msg": "fail"}'
+          schema:
+            type: string
+      summary: 注册用户
+      tags:
+      - 用户系统
+swagger: "2.0"

@@ -29,8 +29,10 @@ const (
 
 	//用户业务错误码 01
 
-	UserExistsErrCode Code = 40100
-	UserTokenErrCode  Code = 40101
+	UserExistsErrCode      Code = 40100
+	UserTokenErrCode       Code = 40101
+	UserPasswordErrCode    Code = 40102
+	UserEmailExistsErrCode Code = 40103
 )
 
 // 系统错误 5xxxx
@@ -47,7 +49,9 @@ func init() {
 
 	// 401xx错误message
 	message[UserExistsErrCode] = "用户已经存在"
-	message[UserTokenErrCode] = "用户已经存在"
+	message[UserTokenErrCode] = "登录信息错误"
+	message[UserPasswordErrCode] = "密码错误"
+	message[UserEmailExistsErrCode] = "邮箱已经存在"
 
 	// 5xxxx错误message
 	message[InternalErrCode] = "系统内部发生错误"

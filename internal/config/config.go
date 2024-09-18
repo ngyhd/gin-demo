@@ -39,39 +39,7 @@ type logsConfig struct {
 	Compress   int    `mapstructure:"compress" json:"compress"`       // 是否压缩
 }
 
-var serverConfig ServerConfig
-var db *gorm.DB
-var redisClient redis.UniversalClient
-var localCache *bigcache.BigCache
-
-func SetServerConfig(c ServerConfig) {
-	serverConfig = c
-}
-
-func GetServerConfig() ServerConfig {
-	return serverConfig
-}
-
-func SetDb(d *gorm.DB) {
-	db = d
-}
-
-func GetDB() *gorm.DB {
-	return db
-}
-
-func SetRedis(r redis.UniversalClient) {
-	redisClient = r
-}
-
-func GetRedis() redis.UniversalClient {
-	return redisClient
-}
-
-func SetLocalCache(c *bigcache.BigCache) {
-	localCache = c
-}
-
-func GetLocalCache() *bigcache.BigCache {
-	return localCache
-}
+var Config ServerConfig
+var DB *gorm.DB
+var RedisClient redis.UniversalClient
+var LocalCache *bigcache.BigCache

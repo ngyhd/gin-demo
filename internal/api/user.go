@@ -15,15 +15,15 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type DeleteRequest struct {
-	Id int `json:"id" binding:"required"`
-}
+// type DeleteRequest struct {
+// 	Id int `json:"id" binding:"required"`
+// }
 
 type UpdateRequest struct {
-	Id       int    `json:"id" binding:"required"`
+	// Id       int    `json:"id" binding:"required"`
 	UserName string `json:"username" binding:"required"`
 }
 
-type InfoRequest struct {
-	Id int `json:"id" binding:"required"`
-}
+// type InfoRequest struct {
+// 	Id int `json:"id" binding:"required"`
+// }
