@@ -52,7 +52,7 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
 		return
 	}
-
+	//tx.RowsAffected // 返回找到的记录数
 	if tx.RowsAffected != 0 { // 用户已存在
 		c.JSON(http.StatusBadRequest, pkg.Fail(pkg.UserExistsErrCode))
 		return

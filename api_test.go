@@ -33,8 +33,8 @@ func TestApi(t *testing.T) {
 			uri:  "/register",
 			params: map[string]any{
 				"username": "Sean2",
-				//"password": "123456",
-				"email": "8888888@qq.com",
+				"password": "123456",
+				"email":    "8888888@qq.com",
 			},
 		},
 		{

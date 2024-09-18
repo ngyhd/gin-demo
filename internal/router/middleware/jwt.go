@@ -85,7 +85,7 @@ func (j *JWTInfo) GenerateJWT(claims jwt.MapClaims) (string, error) {
 	return tokenString, nil
 }
 
-// 验证 JWT
+// 解析 JWT
 func (j *JWTInfo) ParseToken(tokenString string) (jwt.MapClaims, error) {
 	// 解析 RSA 公钥
 	rsaPublicKey, err := jwt.ParseRSAPublicKeyFromPEM(j.publicKey)

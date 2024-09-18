@@ -1,10 +1,15 @@
 # 关于 
-gin-demo基于gin及开源项目进行简单且完善的API开发。  
-本项目致力于帮助初学者掌握Go WEB API开发!  
-本项目保持简单！  
-本项目仅供学习参考！  
+gin-demo基于gin框架进行简单且的API开发。  
+项目致力于帮助初学者掌握Go WEB API开发!
+项目保持简单！仅供参考交流学习！  
+# 支持的功能
+- 注册
+- 登录
+- 查看用户信息
+- 更新用户信息
+- 删除用户  
 
-主要使用以下第三方包：
+# 采用的开源项目：
 - [gin](https://github.com/gin-gonic/gin) 项目路由
 - [gorm](https://github.com/go-gorm/gorm) Go语言的Mysql关系型ORM
 - [go-redis](https://github.com/redis/go-redis) Go语言的redis客户端
