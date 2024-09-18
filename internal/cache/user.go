@@ -28,7 +28,7 @@ func userInfoKey(userId string) string {
 }
 
 func GetUserInfo(ctx context.Context, userId string) (*model.User, error) {
-	result, err := config.GetRedis().Get(ctx, userInfoKey(userId)).Result()
+	result, err := config.RedisClient.Get(ctx, userInfoKey(userId)).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func SetUserInfo(ctx context.Context, user model.User) error {
 	if err != nil {
 		return err
 	}
-	_, err = config.GetRedis().Set(ctx, userInfoKey(strconv.Itoa(int(user.ID))), marshal, 0).Result()
+	_, err = config.RedisClient.Set(ctx, userInfoKey(strconv.Itoa(int(user.ID))), marshal, 0).Result()
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func SetUserInfo(ctx context.Context, user model.User) error {
 }
 
 func DelUserInfo(ctx context.Context, userId string) error {
-	_, err := config.GetRedis().Del(ctx, userInfoKey(userId)).Result()
+	_, err := config.RedisClient.Del(ctx, userInfoKey(userId)).Result()
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func DelUserInfo(ctx context.Context, userId string) error {
 // RefreshUserInfo 刷新用户信息缓存
 func RefreshUserInfo(ctx context.Context, userId string) (*model.User, error) {
 	resp := model.User{}
-	tx := config.GetDB().Where("id = ?", userId).First(&resp)
+	tx := config.DB.Where("id = ?", userId).First(&resp)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		return &resp, tx.Error
 	}

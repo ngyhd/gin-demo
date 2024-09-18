@@ -4,7 +4,12 @@ import (
 	"context"
 	"fmt"
 	"gin-demo/internal/config"
+	"gin-demo/internal/model"
 	"gin-demo/internal/router"
+	"io"
+	"os"
+	"time"
+
 	"github.com/allegro/bigcache/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -15,9 +20,6 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
-	"io"
-	"os"
-	"time"
 
 	"strings"
 )
@@ -38,17 +40,17 @@ func InitConfig() {
 	if err := v.ReadInConfig(); err != nil {
 		zap.S().Panicf("读取配置文件失败%v", err)
 	}
-	c := config.GetServerConfig()
+	c := config.Config
 	if err := v.Unmarshal(&c); err != nil {
 		zap.S().Panicf("解析配置文件失败 %v", err)
 	}
 
-	config.SetServerConfig(c)
+	config.Config = c
 	fmt.Printf("配置文件：%+v", c)
 }
 
 func InitMysql() {
-	c := config.GetServerConfig().MysqlConf
+	c := config.Config.MysqlConf
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		c.User, c.Password, c.Host, c.Port, c.DB)
 	//Gorm 有一个 默认 logger 实现，默认情况下，它会打印慢 SQL 和错误
@@ -68,8 +70,9 @@ func InitMysql() {
 		},
 		//Logger: newLogger,
 	})
-	config.SetDb(db)
-
+	config.DB = db
+	// 创建表
+	config.DB.AutoMigrate(&model.User{})
 	if err != nil {
 		zap.S().Panicf("初始化数据库失败 err:%v", err)
 	}
@@ -77,7 +80,7 @@ func InitMysql() {
 
 func InitRedis() {
 	ctx := context.Background()
-	c := config.GetServerConfig()
+	c := config.Config
 	redisClient := redis.NewUniversalClient(&redis.UniversalOptions{
 		Addrs:    strings.Split(c.RedisConf.Host, ","),
 		Password: c.RedisConf.Password,
@@ -90,7 +93,7 @@ func InitRedis() {
 	if err != nil {
 		zap.S().Panicf("初始化Redis失败 err:%+v", err)
 	}
-	config.SetRedis(redisClient)
+	config.RedisClient = redisClient
 }
 
 func InitLocalCache() {
@@ -102,14 +105,14 @@ func InitLocalCache() {
 	if err != nil {
 		zap.S().Panicf("初始化本地缓存失败 err:%+v", err)
 	}
-	config.SetLocalCache(localCache)
+	config.LocalCache = localCache
 }
 
 func InitLogger() {
 	encoder := getEncoder()
 	loggerInfo := getLogWriterInfo()
 	logLevel := zapcore.InfoLevel
-	switch config.GetServerConfig().LogConf.Level {
+	switch config.Config.LogConf.Level {
 	case "debug":
 		logLevel = zapcore.DebugLevel
 	case "info":
@@ -133,17 +136,17 @@ func getEncoder() zapcore.Encoder {
 }
 
 func getLogWriterInfo() zapcore.WriteSyncer {
-	logPath := config.GetServerConfig().LogConf.Path + "/" + config.GetServerConfig().Name + ".log"
+	logPath := config.Config.LogConf.Path + "/" + config.Config.Name + ".log"
 	l := &lumberjack.Logger{
 		Filename:   logPath,
-		MaxSize:    config.GetServerConfig().LogConf.MaxSize,    //最大MB
-		MaxBackups: config.GetServerConfig().LogConf.MaxBackups, //最大备份
-		MaxAge:     config.GetServerConfig().LogConf.MaxAge,     //保留7天
+		MaxSize:    config.Config.LogConf.MaxSize,    //最大MB
+		MaxBackups: config.Config.LogConf.MaxBackups, //最大备份
+		MaxAge:     config.Config.LogConf.MaxAge,     //保留7天
 		Compress:   true,
 	}
 
 	var ws io.Writer
-	if config.GetServerConfig().Mode == "release" {
+	if config.Config.Mode == "release" {
 		ws = io.MultiWriter(l)
 	} else {
 		//如果不是开发环境，那么会打印日志到日志文件和标准输出，也就是控制台

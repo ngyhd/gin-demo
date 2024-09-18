@@ -19,6 +19,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// RegisterHandler
+// @Summary 注册用户
+// @Description Register
+// @Tags 用户系统
+// @Accept json
+// @Produce json
+// @Param data body api.RegisterRequest true "用户注册请求数据"
+// @Success 200 {string} string "{"msg": "success"}"
+// @Failure 400 {string} string "{"msg": "fail"}"
+// @Router /register [POST]
 func Register(c *gin.Context) {
 	// 参数校验
 	var r api.RegisterRequest
@@ -34,35 +44,33 @@ func Register(c *gin.Context) {
 		Email:    r.Email,
 	}
 
-	// 创建表
-	config.GetDB().AutoMigrate(&model.User{})
-
 	user := model.User{}
 	//1.如果存在相同用户名则返回失败
-	tx := config.GetDB().Where("username = ?", u.Username).First(&user)
+	tx := config.DB.Where("username = ?", u.Username).First(&user)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		zap.S().Errorf("Register query user:%v err:%v", u.Username, tx.Error)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
 		return
 	}
-	if user.ID != 0 {
-		c.JSON(http.StatusOK, pkg.Fail(pkg.UserExistsErrCode))
+
+	if tx.RowsAffected != 0 { // 用户已存在
+		c.JSON(http.StatusBadRequest, pkg.Fail(pkg.UserExistsErrCode))
 		return
 	}
 
 	//2.如果存在相同的电子邮箱则返回失败
-	tx = config.GetDB().Where("email = ?", u.Email).First(&user)
+	tx = config.DB.Where("email = ?", u.Email).First(&user)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		zap.S().Errorf("Register queru user email:%v err:%v", u.Email, tx.Error)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
 		return
 	}
-	if user.ID != 0 {
-		c.JSON(http.StatusOK, pkg.Fail(pkg.UserExistsErrCode))
+	if tx.RowsAffected != 0 { // 邮箱已存在
+		c.JSON(http.StatusOK, pkg.Fail(pkg.UserEmailExistsErrCode))
 		return
 	}
 
-	tx = config.GetDB().Create(&u)
+	tx = config.DB.Create(&u)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		zap.S().Errorf("Register Create user:%+v err:%v", u, tx.Error)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
@@ -84,7 +92,7 @@ func Login(c *gin.Context) {
 	u := model.User{
 		Username: r.UserName,
 	}
-	tx := config.GetDB().Where("username = ?", u.Username).First(&u)
+	tx := config.DB.Where("username = ?", u.Username).First(&u)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		zap.S().Errorf("Login query user:%+v err:%v", u, tx.Error)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
@@ -171,9 +179,9 @@ func Update(c *gin.Context) {
 
 	// 逻辑处理
 	u := model.User{}
-	config.GetDB().First(&u, userId)
+	config.DB.First(&u, userId)
 
-	tx := config.GetDB().Model(&u).Update("username", r.UserName)
+	tx := config.DB.Model(&u).Update("username", r.UserName)
 	if tx.Error != nil {
 		zap.S().Errorf("Update  user:%+v err:%v", u, tx.Error)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.ParamsErrCode))
@@ -202,8 +210,8 @@ func Delete(c *gin.Context) {
 
 	// 逻辑处理
 	u := model.User{}
-	config.GetDB().First(&u, userId)
-	tx := config.GetDB().Delete(&u)
+	config.DB.First(&u, userId)
+	tx := config.DB.Delete(&u)
 	if tx.Error != nil {
 		zap.S().Errorf("Delete  userId:%v err:%v", u.ID, tx.Error)
 		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))

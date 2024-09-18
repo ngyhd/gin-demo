@@ -6,6 +6,11 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
+	_ "gin-demo/docs"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func InitRouter() *gin.Engine {
@@ -19,6 +24,16 @@ func InitRouter() *gin.Engine {
 		g1.POST("/update", logic.Update)
 		g1.POST("/delete", logic.Delete)
 	}
+	// set swagger
+	// swagger.SwaggerInfo.Version = global.Conf.System.ApiVersion
+	// swagger.SwaggerInfo.BasePath = v1Group.BasePath()
+	router.GET(
+		"/swagger/*any",
+		ginSwagger.WrapHandler(
+			swaggerFiles.Handler,
+			ginSwagger.DocExpansion("none"),
+		),
+	)
 
 	return router
 }
