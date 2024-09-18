@@ -1,5 +1,6 @@
 FROM loads/alpine:3.8
-
+#  CGO_ENABLED=0 GOOS=linux  GOARCH=amd64  go  build  main.go
+#  docker build -t gin-demo:v1 .
 ## CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main main.go
 ###############################################################################
 #                                INSTALLATION
