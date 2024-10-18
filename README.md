@@ -1,18 +1,25 @@
-# 关于 
-gin-demo基于gin框架进行简单的API开发。  
-项目保持简单，致力于帮助初学者掌握Go WEB API开发!仅供参考交流学习！    
+<div align="center"> <img width="444px" src="./assets/go_icon.png"/> </div>
 
-# 支持的功能
-- 注册
-- 登录
-- 查看用户信息
-- 更新用户信息
-- 删除用户  
+# 支持的功能  
+- 注册、登录、查看用户信息、更新用户信息、删除用户  
 
 # 采用的开源项目：
-- [gin](https://github.com/gin-gonic/gin) 项目路由
-- [gorm](https://github.com/go-gorm/gorm) Go语言的Mysql关系型ORM
-- [go-redis](https://github.com/redis/go-redis) Go语言的redis客户端
+<table >
+    <tr>
+      <th><img width="50px" src="./assets/gin.png"></th>
+      <th><img width="50px" src="./assets/gorm.png"></th>
+      <th><img width="50px" src="./assets/mysql.png"></th>
+      <th><img width="50px" src="./assets/redis.png"></th>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/gin-gonic/gin">Gin</a></td>
+      <td align="center"><a href="https://github.com/go-gorm/gorm">GORM</a></td>
+      <td align="center"><a href="https://www.mysql.com/">MySql</a></td>
+      <td align="center"><a href="https://github.com/redis/go-redis">Redis</a></td>
+    </tr>
+  </table>
+
+
 - [viper](https://github.com/spf13/viper) 配置文件解析
 - [cors](https://github.com/gin-contrib/cors) 网站请求API，跨域处理
 - [jwt-go](https://github.com/golang-jwt/jwt) 用户的身份校验
