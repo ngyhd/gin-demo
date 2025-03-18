@@ -1,11 +1,11 @@
 module gin-demo
 
 go 1.22.0
-toolchain go1.23.7
+toolchain go1.24.1
 
 require (
 	github.com/allegro/bigcache/v3 v3.1.0
-	github.com/gin-contrib/cors v1.5.0
+	github.com/gin-contrib/cors v1.6.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/redis/go-redis/v9 v9.4.0
