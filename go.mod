@@ -1,7 +1,8 @@
 module gin-demo
 
-go 1.22.0
-toolchain go1.24.1
+go 1.23.0
+
+toolchain go1.23.1
 
 require (
 	github.com/allegro/bigcache/v3 v3.1.0

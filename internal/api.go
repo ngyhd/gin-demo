@@ -70,11 +70,15 @@ func InitMysql() {
 		},
 		//Logger: newLogger,
 	})
+	if err != nil {
+		panic("Init Mysql err:" + err.Error())
+	}
 	config.DB = db
 	// 创建表
 	err = config.DB.AutoMigrate(&model.User{})
 	if err != nil {
 		zap.S().Panicf("初始化数据库失败 err:%v", err)
+		panic("Init Mysql User table err:" + err.Error())
 	}
 }
 

@@ -20,9 +20,14 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: stable
+      - name: Run shell
+        run: |
+          go mod tidy
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.1
           working-directory: ./  # 指定正确的工作目录
           args: --verbose  # 显示详细日志
+
