@@ -75,6 +75,9 @@ func TestApi(t *testing.T) {
 			w := postJson(tt.uri, tt.params, internal.Exec())
 			m := map[string]any{}
 			data, err := io.ReadAll(w.Body)
+			if err != nil {
+				t.Errorf("请求错误, err:%s", err.Error())
+			}
 			err = json.Unmarshal(data, &m)
 			if !reflect.DeepEqual(w.Code, 200) || !reflect.DeepEqual(err, nil) || !reflect.DeepEqual(m["code"], float64(0)) {
 				t.Errorf("响应数据不符，errmsg:%v\n", m["msg"])

@@ -3,9 +3,9 @@ package middleware
 import (
 	"fmt"
 	"gin-demo/pkg"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -51,12 +51,12 @@ func NewJWT() *JWTInfo {
 	var publicKey []byte
 
 	// 读取私钥，注意路径问题
-	privateKey, err = ioutil.ReadFile("./internal/router/middleware/private.key")
+	privateKey, err = os.ReadFile("./internal/router/middleware/private.key")
 	if err != nil {
 		log.Fatalf("failed to load private key: %v", err)
 	}
 	// 读取公钥
-	publicKey, err = ioutil.ReadFile("./internal/router/middleware/public.key")
+	publicKey, err = os.ReadFile("./internal/router/middleware/public.key")
 	if err != nil {
 		log.Fatalf("failed to load public key: %v", err)
 	}

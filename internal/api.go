@@ -72,7 +72,7 @@ func InitMysql() {
 	})
 	config.DB = db
 	// 创建表
-	config.DB.AutoMigrate(&model.User{})
+	err = config.DB.AutoMigrate(&model.User{})
 	if err != nil {
 		zap.S().Panicf("初始化数据库失败 err:%v", err)
 	}
