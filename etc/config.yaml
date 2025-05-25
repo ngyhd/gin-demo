@@ -14,7 +14,7 @@ redis:
 logs:
   path: './logs'
   level: debug   # debug、info、warn、error,级别越高记录的日志越少
-  max_size: 18000   # MB
+  max_size: 10000   # MB
   max_age: 7   # 保留天数
   max_backups: 7   # 最大备份数
   compress: true   # 是否压缩,减少磁盘空间

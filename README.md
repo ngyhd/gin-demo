@@ -1,5 +1,9 @@
 <div align="center"> <img width="444px" src="./assets/go_icon.png"/> </div>
 
+# 介绍
+利于Go新手快速上手Go语言
+如果你对这个仓库有任何意见和建议，欢迎提Issues 或 PR，我会尽快处理
+
 # 支持的功能  
 - 注册、登录、查看用户信息、更新用户信息、删除用户  
 
