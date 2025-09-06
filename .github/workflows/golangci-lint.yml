@@ -45,4 +45,3 @@ jobs:
         run: |
           go build -o main main.go
           ls
-          ./main
