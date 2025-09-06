@@ -1,7 +1,7 @@
 <div align="center"> <img width="444px" src="./assets/go_icon.png"/> </div>
 
-# 介绍介绍
-帮助Go新手快速入门Go语言的项目
+# 项目介绍
+帮助Go新手快速入门Go语言的项目  
 如果你对这个仓库有任何意见和建议，欢迎提Issues 或 PR，我会尽快处理
 
 # 支持的功能  
