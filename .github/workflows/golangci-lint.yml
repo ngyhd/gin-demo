@@ -31,3 +31,18 @@ jobs:
           working-directory: ./  # 指定正确的工作目录
           args: --verbose  # 显示详细日志
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22' # 指定你的Go版本
+          cache: true # 启用内置缓存，默认为true
+      - name: Download dependencies
+        run: |
+          go version
+          go mod download
+          
+      - name: Build
+        run: |
+          go build -o main main.go
+          ls
+          ./main
