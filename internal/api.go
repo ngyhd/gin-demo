@@ -85,8 +85,9 @@ func InitMysql() {
 func InitRedis() {
 	ctx := context.Background()
 	c := config.Config
+	addr := fmt.Sprintf("%s:%s", c.RedisConf.Host, c.RedisConf.Port)
 	redisClient := redis.NewUniversalClient(&redis.UniversalOptions{
-		Addrs:    strings.Split(c.RedisConf.Host, ","),
+		Addrs:    strings.Split(addr, ","),
 		Password: c.RedisConf.Password,
 		// To route commands by latency or randomly, enable one of the following.
 		//RouteByLatency: true,
@@ -146,7 +147,7 @@ func getLogWriterInfo() zapcore.WriteSyncer {
 		MaxSize:    config.Config.LogConf.MaxSize,    //最大MB
 		MaxBackups: config.Config.LogConf.MaxBackups, //最大备份
 		MaxAge:     config.Config.LogConf.MaxAge,     //保留7天
-		Compress:   true,
+		Compress:   config.Config.LogConf.Compress,
 	}
 
 	var ws io.Writer

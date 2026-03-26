@@ -8,8 +8,8 @@ mysql:
   user: root
   password: 123456
 redis:
-  host: 127.0.0.1:6379
-  dB: 0
+  host: 127.0.0.1
+  port: 6379
   password:
 logs:
   path: './logs'

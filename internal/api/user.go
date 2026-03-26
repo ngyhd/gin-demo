@@ -22,6 +22,7 @@ type LoginRequest struct {
 type UpdateRequest struct {
 	// Id       int    `json:"id" binding:"required"`
 	UserName string `json:"username" binding:"required"`
+	Email    string `json:"email" binding:"omitempty,email"`
 }
 
 // type InfoRequest struct {

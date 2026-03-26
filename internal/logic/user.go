@@ -66,7 +66,7 @@ func Register(c *gin.Context) {
 		return
 	}
 	if tx.RowsAffected != 0 { // 邮箱已存在
-		c.JSON(http.StatusOK, pkg.Fail(pkg.UserEmailExistsErrCode))
+		c.JSON(http.StatusBadRequest, pkg.Fail(pkg.UserEmailExistsErrCode))
 		return
 	}
 
@@ -181,20 +181,45 @@ func Update(c *gin.Context) {
 	u := model.User{}
 	config.DB.First(&u, userId)
 
-	tx := config.DB.Model(&u).Update("username", r.UserName)
+	// 检查用户名是否被其他用户占用
+	if r.UserName != u.Username {
+		var existingUser model.User
+		tx := config.DB.Where("username = ? AND id != ?", r.UserName, userId).First(&existingUser)
+		if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+			zap.S().Errorf("Update query username:%v err:%v", r.UserName, tx.Error)
+			c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
+			return
+		}
+		if tx.RowsAffected != 0 {
+			c.JSON(http.StatusBadRequest, pkg.Fail(pkg.UserExistsErrCode))
+			return
+		}
+	}
+
+	// 更新用户信息
+	updates := map[string]interface{}{
+		"username": r.UserName,
+	}
+	if r.Email != "" {
+		updates["email"] = r.Email
+	}
+	tx := config.DB.Model(&u).Updates(updates)
 	if tx.Error != nil {
 		zap.S().Errorf("Update  user:%+v err:%v", u, tx.Error)
-		c.JSON(http.StatusOK, pkg.Fail(pkg.ParamsErrCode))
+		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
 		return
 	}
+
 	// 刷新缓存
 	_, err = cache.RefreshUserInfo(c.Request.Context(), strconv.Itoa(int(u.ID)))
 	if err != nil {
 		zap.S().Errorf("Update.refreshUserInfoCache  user:%+v err:%v", u, tx.Error)
-		c.JSON(http.StatusOK, pkg.Fail(pkg.ParamsErrCode))
+		c.JSON(http.StatusOK, pkg.Fail(pkg.InternalErrCode))
 		return
 	}
 
+	// 重新查询获取最新数据
+	config.DB.First(&u, userId)
 	c.JSON(http.StatusOK, pkg.SuccessWithData(u))
 }
 

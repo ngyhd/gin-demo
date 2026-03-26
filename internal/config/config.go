@@ -36,7 +36,7 @@ type logsConfig struct {
 	MaxAge     int    `mapstructure:"max_age" json:"max_age"`         // 最大保存时间（单位天
 	MaxBackups int    `mapstructure:"max_backups" json:"max_backups"` //最大备份数
 	MaxSize    int    `mapstructure:"max_size" json:"max_size"`       // 最大Size MB
-	Compress   int    `mapstructure:"compress" json:"compress"`       // 是否压缩
+	Compress   bool   `mapstructure:"compress" json:"compress"`       // 是否压缩
 }
 
 var Config ServerConfig
